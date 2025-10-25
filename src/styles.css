@@ -265,7 +265,7 @@ section + section{ margin-top: clamp(16px, 3vw, 28px); }
 }
 
 /* =========================================================
-   MATCH LIST / TABLE
+   MATCH LIST / TABLE (base)
    ========================================================= */
 .match-list{ list-style:none; padding:0; margin:16px 0 0; display:grid; gap:10px }
 .match-item{
@@ -447,7 +447,7 @@ button[disabled], .btn[disabled]{ opacity:.55; cursor:not-allowed }
 }
 
 /* =========================================================
-   RESPONSIVE LAYER
+   RESPONSIVE LAYER (generale)
    ========================================================= */
 
 /* — 900px — */
@@ -524,9 +524,6 @@ button[disabled], .btn[disabled]{ opacity:.55; cursor:not-allowed }
 
   .badge{ padding:2px 7px }
   .helper{ font-size: var(--fs-xs) }
-
-  .table-row{ grid-template-columns: 36px 1fr auto }
-  .table-row .gd{ display:none }
 }
 
 /* — 420px — */
@@ -585,13 +582,10 @@ button[disabled], .btn[disabled]{ opacity:.55; cursor:not-allowed }
    ========================================================= */
 @media (max-width:720px){
   .navbar > .nav-container > .nav-links { 
-    display:none; /* niente !important necessario */
+    display:none;
   }
   .nav-toggle{ display:inline-flex; }
   .nav-menu{ display:block; width:100%; }
-
-  /* mostra il menu mobile */
-  .nav-menu{ display:block !important; width:100%; }
 
   /* pannello mobile chiuso di default */
   .nav-menu-panel{
@@ -631,104 +625,176 @@ button[disabled], .btn[disabled]{ opacity:.55; cursor:not-allowed }
   }
 }
 
-/* Extra standings columns */
+/* =========================================================
+   CLASSIFICA / STANDINGS — layout + miglioramenti
+   ========================================================= */
+
+/* Rimuovi eventuale prefisso "GD" (lo gestisci nel JS) */
+.table-row .gd::before,
+.table-header .gd::before { content: none !important; }
+
+/* Allineamento numeri coerente */
 .table-row .w, .table-row .d, .table-row .l,
-.table-row .gf, .table-row .ga, .table-row .gd, .table-row .pts {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.table-row .pts{ font-weight: 700 }
-.table-row .gd::before { content: "GD "; opacity: .7; font-weight: 500 }
-@media (max-width: 640px){
-  /* On very small screens, hide GA and show essentials */
-  .table-row .ga { display:none }
+.table-row .gf, .table-row .ga, .table-row .gd, .table-row .pts,
+.table-header .w, .table-header .d, .table-header .l,
+.table-header .gf, .table-header .ga, .table-header .gd, .table-header .pts {
+  text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 
-
-/* === Scoped layouts for standings and top4 === */
-.standings .table-row{
-  display:grid;
-  grid-template-columns: 40px 1fr repeat(8, auto);
-  gap:12px; align-items:center;
+/* Evita accavallamenti: tronca team & player */
+.teamCell { min-width: 0; display: inline-flex; align-items: center; gap: 8px; }
+.teamCell .team-name{
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 52vw;
 }
-.top4 .table-row{
-  display:grid;
-  grid-template-columns: 28px 1fr repeat(8, auto);
-  gap:10px; align-items:center;
-}
-.standings .table-row .pts,
-.top4 .table-row .pts{ font-weight:700 }
-.standings .table-row .gd::before,
-.top4 .table-row .gd::before{ content:"GD "; opacity:.7 }
-.top4 .team-logo{ width:20px; height:20px; border-radius:5px }
-
-/* Compact stat cells */
-.table-row .w, .table-row .d, .table-row .l,
-.table-row .gf, .table-row .ga, .table-row .gd, .table-row .pts{
-  text-align:right;
-  font-variant-numeric: tabular-nums;
-}
-@media (max-width: 640px){
-  .standings .table-row .ga, .top4 .table-row .ga { display:none }
+.teamCell small{
+  white-space: nowrap;
+  opacity: .8;
+  flex-shrink: 0;
 }
 
-/* === Header row for standings === */
+/* Header tipografico + griglia base (desktop/tablet) */
 .standings .table-header{
   display:grid;
-  grid-template-columns: 40px 1fr repeat(8, auto);
-  gap:12px; align-items:center;
+  align-items:center;
   color: var(--ink-sub);
   font-size: var(--fs-sm);
   margin-bottom: 8px;
   padding: 0 4px;
+  white-space: nowrap; /* NON andare a capo */
 }
 .standings .table-header .pos{
   display:flex; align-items:center; justify-content:center;
 }
-@media (max-width: 640px){
-  .standings .table-header .ga{ display:none }
-}
-\n
-/* === Header row for Top Four (outside <ol>) === */
-.top4 .table-header{
-  display:grid;
-  grid-template-columns: 28px 1fr repeat(8, auto);
-  gap:10px; align-items:center;
-  color: var(--ink-sub);
-  font-size: var(--fs-sm);
-  margin-bottom: 8px;
-  padding: 0 4px;
-}
-.top4 .table-header .pos{
-  display:flex; align-items:center; justify-content:center;
-}
-@media (max-width: 640px){
-  .top4 .table-header .ga{ display:none }
-}
 
-/* ——— Griglie identiche per intestazione e righe ——— */
+/* Griglia coerente tra header e righe (desktop/tablet) */
 .standings .table-header,
 .standings .table .table-row {
-  grid-template-columns: 40px 1fr repeat(8, auto) !important;
+  grid-template-columns: 40px minmax(0,1fr) repeat(7, minmax(36px, auto));
+  gap: 16px;
 }
 
-.top4 .table-header,
-.top4 .table .table-row {
-  grid-template-columns: 28px 1fr repeat(8, auto) !important;
+/* 900px: compattazione */
+@media (max-width: 900px){
+  .standings .table-header,
+  .standings .table .table-row {
+    grid-template-columns: 36px minmax(0,1fr) repeat(7, minmax(32px, auto));
+    gap: 12px;
+  }
+  .table-row .pos{ width:28px; height:28px; }
+  .teamCell .team-name{ max-width: 58vw; }
 }
 
-/* Allineamento numeri e tipografia uniforme */
-.table-row .w, .table-row .d, .table-row .l,
-.table-row .gf, .table-row .ga, .table-row .gd, .table-row .pts {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.table-header .w, .table-header .d, .table-header .l,
-.table-header .gf, .table-header .ga, .table-header .gd, .table-header .pts {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
+/* 640px: nascondi GA (header+righe) per aria, ma… */
+@media (max-width: 640px){
+  .standings .table-header .ga,
+  .standings .table-row .ga { display:none !important; }
+
+  .standings .table-header,
+  .standings .table .table-row {
+    grid-template-columns: 32px minmax(0,1fr) repeat(5, minmax(30px, auto));
+    gap: 10px;
+  }
+
+  .table-row .w, .table-row .d, .table-row .l,
+  .table-row .gf, .table-row .gd, .table-row .pts { font-size: var(--fs-xs); }
+  .teamCell img.team-logo{ width:24px; height:24px; }
 }
 
+/* 520px: nascondi anche GD (header+righe) per aria, ma… */
+@media (max-width: 520px){
+  .standings .table-header .gd,
+  .standings .table-row .gd { display:none !important; }
+
+  .standings .table-header,
+  .standings .table .table-row {
+    grid-template-columns: 30px minmax(0,1fr) repeat(4, minmax(28px, auto));
+    gap: 8px;
+  }
+}
+
+/* =========================
+   ≤ 460px — VISTA A 2 RIGHE
+   (mostra TUTTE le statistiche)
+   ========================= */
+@media (max-width: 460px){
+
+  /* 1) Ripristina le colonne eventualmente nascoste sopra */
+  .standings .table-header { display:none !important; }  /* header nascosto solo qui */
+  .standings .table-row .ga,
+  .standings .table-row .gd,
+  .standings .table-row .l { display:inline !important; }
+
+  /* 2) Griglia a 2 righe, con pos che occupa entrambe */
+  .standings .table .table-row{
+    grid-template-columns: 30px 1fr repeat(7, minmax(33px, auto)) 30px;
+    grid-auto-rows: auto;
+    gap: 6px;
+    padding: 9px;
+  }
+
+  /* 3) Posizione esplicita degli elementi */
+  .standings .table-row .pos{
+    grid-column: 1 / 2;
+    grid-row: 1 / span 2;   /* occupa entrambe le righe */
+    width: 26px; height: 26px; font-size: var(--fs-xs);
+  }
+
+  .standings .table-row .teamCell{
+    grid-column: 2 / 8;     /* team prende la riga 1 */
+    grid-row: 1 / 2;
+    align-items: center;
+  }
+  .standings .table-row .teamCell .team-name{ max-width: 64vw; }
+  .standings .table-row .teamCell small{ display:none; } /* spazio al nome */
+
+  .standings .table-row .pts{
+    grid-column: 9 / 10;    /* PTS in alto a destra */
+    grid-row: 1 / 2;
+    text-align: right; font-weight: 800;
+  }
+
+  /* Riga 2: tutte le statistiche allineate orizzontalmente */
+  .standings .table-row .w  { grid-column: 2 / 3; grid-row: 2; }
+  .standings .table-row .d  { grid-column: 3 / 4; grid-row: 2; }
+  .standings .table-row .l  { grid-column: 4 / 5; grid-row: 2; }
+  .standings .table-row .gf { grid-column: 5 / 6; grid-row: 2; }
+  .standings .table-row .ga { grid-column: 6 / 7; grid-row: 2; }
+  .standings .table-row .gd { grid-column: 7 / 8; grid-row: 2; }
+
+  /* 4) Micro-label per chiarezza (opzionale ma utili senza header) */
+  .standings .table-row .w::before  { content:"W";  font-weight:600; margin-right:2px; opacity:.7; font-size: var(--fs-xxs); }
+  .standings .table-row .d::before  { content:"D";  font-weight:600; margin-right:2px; opacity:.7; font-size: var(--fs-xxs); }
+  .standings .table-row .l::before  { content:"L";  font-weight:600; margin-right:2px; opacity:.7; font-size: var(--fs-xxs); }
+  .standings .table-row .gf::before { content:"GF"; font-weight:600; margin-right:2px; opacity:.7; font-size: var(--fs-xxs); }
+  .standings .table-row .ga::before { content:"GA"; font-weight:600; margin-right:2px; opacity:.7; font-size: var(--fs-xxs); }
+  .standings .table-row .gd::before { content:"GD"; font-weight:600; margin-right:2px; opacity:.7; font-size: var(--fs-xxs); }
+
+  /* 5) Tipografia leggermente più piccola sulla riga 2 */
+  .standings .table-row .w,
+  .standings .table-row .d,
+  .standings .table-row .l,
+  .standings .table-row .gf,
+  .standings .table-row .ga,
+  .standings .table-row .gd {
+    font-size: var(--fs-xxs);
+    text-align: left; /* con etichetta a sx è più leggibile */
+  }
+
+  /* 6) Icone/logo più piccoli */
+  .teamCell img.team-logo{ width:22px; height:22px; border-radius:5px; }
+}
+
+/* Impedisci che i numeri vadano a capo (fallback generale) */
+.table .table-row span:not(.teamCell) { white-space: nowrap; }
+
+/* =========================================================
+   CALENDARIO — stile
+   ========================================================= */
 .calendar-page { padding: 1rem; }
 .calendar-page h3 {
   font-weight: 600; font-size: var(--fs-lg);
@@ -766,28 +832,24 @@ button[disabled], .btn[disabled]{ opacity:.55; cursor:not-allowed }
 .list-group-item .dash { opacity: .9; }
 .text-muted { color: var(--muted) !important; font-style: italic; }
 
-/* (opzionale) spaziatura più stretta su mobile */
+/* spaziatura più stretta su mobile */
 @media (max-width: 560px) {
   .team strong { font-size: var(--fs-sm); }
   .team-logo { width: 22px; height: 22px; }
   .list-group-item { gap: 8px; }
 }
-
-/* 2) CLASSIFICA – rimuovi prefisso “GD ” aggiunto altrove */
-.table-row .gd::before,
-.table-header .gd::before {
-  content: none !important;
-}
-
-/* 3) Allineamenti numerici coerenti (già presenti ma forziamo) */
-.table-row .w, .table-row .d, .table-row .l,
-.table-row .gf, .table-row .ga, .table-row .gd, .table-row .pts,
-.table-header .w, .table-header .d, .table-header .l,
-.table-header .gf, .table-header .ga, .table-header .gd, .table-header .pts {
-  text-align: right; font-variant-numeric: tabular-nums;
-}
-
-/* 4) (Facoltativo) Leggera enfasi al punteggio calendario */
-.list-group-item .score {
-  display: inline-flex; align-items: center; gap: 8px;
+/* Carosello .three: 1 slide su mobile */
+@media (max-width: 720px){
+  .carousel.three .carousel-window{
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 10px;
+    padding: 0 4px;
+  }
+  .carousel.three .carousel-slide{
+    width: 100%;
+    min-width: 100%;
+    scroll-snap-align: start;
+  }
+  .carousel.three .carousel-controls{ gap: 8px; }
 }
