@@ -283,7 +283,7 @@ section + section{ margin-top: clamp(16px, 3vw, 28px); }
 
 .table{ list-style:none; padding:0; margin:12px 0 0; display:grid; gap:10px }
 .table-row{
-  display:grid; grid-template-columns:40px 1fr auto auto; gap:12px; align-items:center;
+  display:grid; grid-template-columns: 40px 1fr repeat(8, auto); gap:12px; align-items:center;
   background:var(--card); border:1px solid var(--bd); border-radius:var(--radius-lg); padding:12px
 }
 .table-row .pos{
@@ -629,4 +629,165 @@ button[disabled], .btn[disabled]{ opacity:.55; cursor:not-allowed }
     padding:12px 12px;
     border-radius:12px;
   }
+}
+
+/* Extra standings columns */
+.table-row .w, .table-row .d, .table-row .l,
+.table-row .gf, .table-row .ga, .table-row .gd, .table-row .pts {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.table-row .pts{ font-weight: 700 }
+.table-row .gd::before { content: "GD "; opacity: .7; font-weight: 500 }
+@media (max-width: 640px){
+  /* On very small screens, hide GA and show essentials */
+  .table-row .ga { display:none }
+}
+
+
+/* === Scoped layouts for standings and top4 === */
+.standings .table-row{
+  display:grid;
+  grid-template-columns: 40px 1fr repeat(8, auto);
+  gap:12px; align-items:center;
+}
+.top4 .table-row{
+  display:grid;
+  grid-template-columns: 28px 1fr repeat(8, auto);
+  gap:10px; align-items:center;
+}
+.standings .table-row .pts,
+.top4 .table-row .pts{ font-weight:700 }
+.standings .table-row .gd::before,
+.top4 .table-row .gd::before{ content:"GD "; opacity:.7 }
+.top4 .team-logo{ width:20px; height:20px; border-radius:5px }
+
+/* Compact stat cells */
+.table-row .w, .table-row .d, .table-row .l,
+.table-row .gf, .table-row .ga, .table-row .gd, .table-row .pts{
+  text-align:right;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px){
+  .standings .table-row .ga, .top4 .table-row .ga { display:none }
+}
+
+/* === Header row for standings === */
+.standings .table-header{
+  display:grid;
+  grid-template-columns: 40px 1fr repeat(8, auto);
+  gap:12px; align-items:center;
+  color: var(--ink-sub);
+  font-size: var(--fs-sm);
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+.standings .table-header .pos{
+  display:flex; align-items:center; justify-content:center;
+}
+@media (max-width: 640px){
+  .standings .table-header .ga{ display:none }
+}
+\n
+/* === Header row for Top Four (outside <ol>) === */
+.top4 .table-header{
+  display:grid;
+  grid-template-columns: 28px 1fr repeat(8, auto);
+  gap:10px; align-items:center;
+  color: var(--ink-sub);
+  font-size: var(--fs-sm);
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+.top4 .table-header .pos{
+  display:flex; align-items:center; justify-content:center;
+}
+@media (max-width: 640px){
+  .top4 .table-header .ga{ display:none }
+}
+
+/* ——— Griglie identiche per intestazione e righe ——— */
+.standings .table-header,
+.standings .table .table-row {
+  grid-template-columns: 40px 1fr repeat(8, auto) !important;
+}
+
+.top4 .table-header,
+.top4 .table .table-row {
+  grid-template-columns: 28px 1fr repeat(8, auto) !important;
+}
+
+/* Allineamento numeri e tipografia uniforme */
+.table-row .w, .table-row .d, .table-row .l,
+.table-row .gf, .table-row .ga, .table-row .gd, .table-row .pts {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.table-header .w, .table-header .d, .table-header .l,
+.table-header .gf, .table-header .ga, .table-header .gd, .table-header .pts {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.calendar-page { padding: 1rem; }
+.calendar-page h3 {
+  font-weight: 600; font-size: var(--fs-lg);
+  color: var(--ink); border-left: 4px solid #2a2a33;
+  padding-left: 8px; margin-bottom: 12px;
+}
+.matchday {
+  background: var(--bg-elev);
+  border: 1px solid var(--bd);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  box-shadow: var(--elev);
+}
+.list-group { list-style: none; margin: 0; padding: 0; }
+.list-group-item {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: var(--card);
+  border: none; border-bottom: 1px solid var(--bd);
+  padding: 10px 8px;
+  transition: background var(--trans);
+}
+.list-group-item:last-child { border-bottom: none; }
+.list-group-item:hover { background: #1b1b22; }
+
+/* pezzi della riga partita */
+.team { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); }
+.team strong { font-weight: 700; font-size: var(--fs-md); }
+.team.left { justify-content: flex-end; text-align: right; }
+.team.right { justify-content: flex-start; text-align: left; }
+.team-logo {
+  width: 26px; height: 26px; border-radius: 50%;
+  object-fit: cover; background: #0d0e13; box-shadow: 0 0 0 1px var(--bd);
+}
+.list-group-item strong.score-num { font-size: var(--fs-lg); font-weight: 800; }
+.list-group-item .dash { opacity: .9; }
+.text-muted { color: var(--muted) !important; font-style: italic; }
+
+/* (opzionale) spaziatura più stretta su mobile */
+@media (max-width: 560px) {
+  .team strong { font-size: var(--fs-sm); }
+  .team-logo { width: 22px; height: 22px; }
+  .list-group-item { gap: 8px; }
+}
+
+/* 2) CLASSIFICA – rimuovi prefisso “GD ” aggiunto altrove */
+.table-row .gd::before,
+.table-header .gd::before {
+  content: none !important;
+}
+
+/* 3) Allineamenti numerici coerenti (già presenti ma forziamo) */
+.table-row .w, .table-row .d, .table-row .l,
+.table-row .gf, .table-row .ga, .table-row .gd, .table-row .pts,
+.table-header .w, .table-header .d, .table-header .l,
+.table-header .gf, .table-header .ga, .table-header .gd, .table-header .pts {
+  text-align: right; font-variant-numeric: tabular-nums;
+}
+
+/* 4) (Facoltativo) Leggera enfasi al punteggio calendario */
+.list-group-item .score {
+  display: inline-flex; align-items: center; gap: 8px;
 }
