@@ -1,11 +1,14 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { supabase } from '../supabaseClient'
 import { teamLogoUrl } from '../utils/logo'
 
 export default function MatchdayCarousel() {
   const [slides, setSlides] = useState([])
-  const [offset, setOffset] = useState(0)
+  const [offset, setOffset] = useState(0)         // indice della PRIMA slide visibile
   const autoplayRef = useRef(null)
+
+  // 1) 1 card su mobile, 3 su desktop
+  const visibleCount = useResponsiveVisibleCount()
 
   useEffect(() => {
     async function load() {
@@ -14,10 +17,7 @@ export default function MatchdayCarousel() {
         .select('id, matchday_number')
         .order('matchday_number', { ascending: true })
 
-      if (error) {
-        console.error(error)
-        return
-      }
+      if (error) { console.error(error); return }
 
       const enrich = await Promise.all((mds || []).map(async (md) => {
         const { data: matches, error: em } = await supabase
@@ -28,73 +28,55 @@ export default function MatchdayCarousel() {
           .eq('matchday_id', md.id)
           .order('id', { ascending: true })
 
-        if (em) {
-          console.error(em)
-          return { ...md, matches: [] }
-        }
+        if (em) { console.error(em); return { ...md, matches: [] } }
         return { ...md, matches }
       }))
 
       setSlides(enrich || [])
-      setOffset(Math.max(0, (enrich || []).length - 3))
+      setOffset(0) // parti dalla prima giornata
     }
-
     load()
   }, [])
 
-  // helpers per navigazione
+  // 2) Navigazione CIRCOLARE in entrambe le direzioni
   function prev() {
-    setOffset((o) => Math.max(0, o - 1))
+    setOffset(o => slides.length ? (o - 1 + slides.length) % slides.length : 0)
   }
-
   function next() {
-    setOffset((o) => {
-      if (slides.length <= 3) return 0 // nessun carosello reale
-      const max = Math.max(0, slides.length - 3)
-      return o >= max ? 0 : o + 1 // loopa automaticamente all’inizio
-    })
+    setOffset(o => slides.length ? (o + 1) % slides.length : 0)
   }
 
-  // autoplay: cambia slide ogni 6 secondi
+  // 3) Autoplay (solo se c'è qualcosa da far scorrere)
   useEffect(() => {
-    if (slides.length <= 3) return // non serve se meno di 3 giornate
-    autoplayRef.current = setInterval(() => {
-      next()
-    }, 6000) // ⏱ ogni 6s
-
-    // pulizia
+    if (slides.length <= Math.max(1, visibleCount)) return
+    autoplayRef.current = setInterval(() => next(), 6000)
     return () => clearInterval(autoplayRef.current)
-  }, [slides])
+  }, [slides, visibleCount])
 
-  // resetta timer se l’utente interagisce (prev/next manuali)
-  function handlePrev() {
-    clearInterval(autoplayRef.current)
-    prev()
-  }
+  function handlePrev() { clearInterval(autoplayRef.current); prev() }
+  function handleNext() { clearInterval(autoplayRef.current); next() }
 
-  function handleNext() {
-    clearInterval(autoplayRef.current)
-    next()
-  }
+  // 4) Finestra visibile “wrap-around” (modulo)
+  const visible = useMemo(() => {
+    if (!slides.length) return []
+    const n = Math.min(visibleCount, slides.length)
+    const out = []
+    for (let k = 0; k < n; k++) out.push(slides[(offset + k) % slides.length])
+    return out
+  }, [slides, offset, visibleCount])
 
-  // calcola le 3 da mostrare
-  const visible = slides.slice(offset, offset + 3)
+  // Se c'è <= 1 “pagina” di contenuto, i controlli sono facoltativi
+  const controlsDisabled = slides.length <= 1
 
   return (
     <section className="carousel three" id="calendario">
       <div className="container">
         <div className="carousel-controls">
-          <button
-            onClick={handlePrev}
-            aria-label="Precedente"
-            disabled={offset === 0}
-          >
-            ‹
-          </button>
+          <button onClick={handlePrev} aria-label="Precedente" disabled={controlsDisabled}>‹</button>
 
           <div className="carousel-window">
             {visible.map((s, i) => (
-              <article key={s?.id || i} className="carousel-slide">
+              <article key={s?.id ?? `${offset}-${i}`} className="carousel-slide">
                 <h3>Giornata {s?.matchday_number ?? '-'}</h3>
                 <ul className="match-list">
                   {s?.matches?.length ? (
@@ -143,15 +125,25 @@ export default function MatchdayCarousel() {
             ))}
           </div>
 
-          <button
-            onClick={handleNext}
-            aria-label="Successiva"
-            disabled={slides.length <= 3}
-          >
-            ›
-          </button>
+          <button onClick={handleNext} aria-label="Successiva" disabled={controlsDisabled}>›</button>
         </div>
       </div>
     </section>
   )
+}
+
+/* ==== hook: 1 card su mobile, 3 su desktop ==== */
+function useResponsiveVisibleCount() {
+  const [count, setCount] = useState(3)
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 720px)')
+    const update = () => setCount(mql.matches ? 1 : 3)
+    update()
+    // compat vecchi browser
+    const add = mql.addEventListener ? 'addEventListener' : 'addListener'
+    const rem = mql.removeEventListener ? 'removeEventListener' : 'removeListener'
+    mql[add]('change', update)
+    return () => mql[rem]('change', update)
+  }, [])
+  return count
 }
